@@ -65,8 +65,8 @@ class _DiseaseInfoScreenState extends State<DiseaseInfoScreen> {
 • Blood sugar (glucose) level lower than standard range
 • Blood sugar level below 70 mg/dL (3.9 mmol/L)
 • Blood sugar level below 54 mg/dL (3.0 mmol/L) is considered severe
-• **If Conscious:** Give half cup of juice or spoonful of honey, wait 15 minutes, retest
-• **If Unconscious:** Do not give anything by mouth, call emergency, use glucagon if available''',
+• **How are you act in this case If Conscious:** Give half cup of juice or spoonful of honey, wait 15 minutes, retest
+• **How are you act in this case If Unconscious:** Do not give anything by mouth, call emergency, use glucagon if available''',
             'images': ['assets/Hyperglycemia.jpg']
           },
           'Site of Injection': {
@@ -219,7 +219,7 @@ Limit television, video games, smartphone, and tablet use. Encourage fun activit
             'image': 'assets/children_active.jpg'
           },
           'Dr. Buzzy\'s Healthy Recipes': {
-            'images': ['assets/obesity_recipes.jpg', 'assets/obesity_recipes2.jpg']
+            'images': ['assets/obesity_recipes.jpg', 'assets/obesity_recipes2.jpg' , 'assets/obesity_recipes3.jpg' , 'assets/obesity_recipes4.jpg']
           }
         }
       },
@@ -366,7 +366,7 @@ Scabs and crusts form over the burst blisters.''',
 **Vitamin Deficiency Anemia:**
 **Causes:** Lack of vitamin B12 and folic acid, poor diet or absorption issues
 **Symptoms:** General anemia symptoms plus red beef tongue
-**Treatment:** Vitamin supplements, diet adjustment,
+**Treatment:** Vitamin supplements, diet adjustment
 
 **Hemolytic Anemia:**
 Blood disorder where red blood cells break down faster than body can replace them
@@ -374,7 +374,7 @@ Blood disorder where red blood cells break down faster than body can replace the
 **Types include:**
 • **B-thalassemia:** Low enzyme levels, treatment depends on cause
 • **Sickle cell anemia:** Inherited condition with abnormal hemoglobin causing rigid cells''',
-            'image': 'assets/red_beef_tongue.jpg'
+            'images': ['assets/red_beef_tongue.jpg', 'assets/types of hemolytic anemia.jpg']
           },
           'Diagnostic Tests for Anemia': {
             'content': '''**Common tests include:**

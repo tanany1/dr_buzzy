@@ -20,7 +20,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   String? _selectedGender;
 
   final List<String> _ages = [
-    '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15'
+    '5', '6', '7', '8', '9', '10'
   ];
 
   final List<String> _genders = ['Male', 'Female'];

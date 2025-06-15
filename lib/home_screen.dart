@@ -1,3 +1,4 @@
+import 'package:dr_buzzy/awareness_screen.dart';
 import 'package:flutter/material.dart';
 import 'disease_info_screen.dart';
 import 'profile_screen.dart';
@@ -197,7 +198,8 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 Image.asset(
                   diseases[index]['image']!,
-                  height: 80,
+                  height: 120,
+                  width: 120,
                   errorBuilder: (context, error, stackTrace) {
                     return Container(
                       height: 80,
@@ -223,7 +225,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       color: Colors.black87,
-                      fontSize: 14,
+                      fontSize: 18,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -264,7 +266,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     Image.asset(
                       gameLinks[index]['image']!,
-                      height: 80,
+                      height: 120,
+                      width: 120,
                       errorBuilder: (context, error, stackTrace) {
                         return Container(
                           height: 80,
@@ -309,7 +312,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       color: Colors.black87,
-                      fontSize: 14,
+                      fontSize: 18,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -345,6 +348,7 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             _buildHomeTab(),
             _buildGamesTab(),
+            AwarenessScreen(),
             const ProfileScreen(),
           ],
         ),
@@ -358,6 +362,7 @@ class _HomeScreenState extends State<HomeScreen> {
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(icon: Icon(Icons.games), label: 'Games'),
+          BottomNavigationBarItem(icon: Icon(Icons.noise_aware), label: 'DR Buzzy'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
         currentIndex: _selectedIndex,

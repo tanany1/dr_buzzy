@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class DiseaseInfoScreen extends StatefulWidget {
   final String diseaseName;
@@ -10,154 +11,595 @@ class DiseaseInfoScreen extends StatefulWidget {
 }
 
 class _DiseaseInfoScreenState extends State<DiseaseInfoScreen> {
-  Map<String, String> sections = {};
+  Map<String, Map<String, dynamic>> diseaseData = {};
   Map<String, bool> isExpanded = {};
-  String image = '';
+  final TextEditingController _glucoseController = TextEditingController();
+  String _glucoseFeedback = '';
 
   @override
   void initState() {
     super.initState();
-    _parseDiseaseInfo();
+    _initializeDiseaseData();
+    _initializeExpandedStates();
   }
 
-  void _parseDiseaseInfo() {
-    String info = '';
-    switch (widget.diseaseName) {
-      case 'Diabetes Mellitus':
-        info = '''
-**Overview**
-Diabetes mellitus is a group of common endocrine diseases characterized by sustained high blood sugar levels. Diabetes is due to either the pancreas not producing enough of the hormone insulin, or the cells of the body becoming unresponsive to insulin's effects.
+  @override
+  void dispose() {
+    _glucoseController.dispose();
+    super.dispose();
+  }
 
-**Types of Diabetes**
-- Type 1 Diabetes: This happens when the body doesn't make insulin. It usually starts in childhood or teenage years. (Should use insulin in treatment)
-- Type 2 Diabetes: This is the most common type. The body doesn't use insulin properly. It usually happens in adults, but can happen to children too.
+  void _initializeDiseaseData() {
+    diseaseData = {
+      'Diabetes Mellitus': {
+        'headerImage': 'assets/diabetes.png',
+        'sections': {
+          'Overview': {
+            'content': '''Diabetes mellitus is a group of common endocrine diseases characterized by sustained high blood sugar levels. Diabetes is due to either the pancreas not producing enough of the hormone insulin, or the cells of the body becoming unresponsive to insulin's effects.''',
+            'image': ''
+          },
+          'Symptoms': {
+            'content': '''Symptoms of diabetes mellitus typically include:
+• Increased thirst
+• Frequent urination
+• Fatigue
+• Blurred vision
+• Unexplained weight loss
+• Slow-healing wounds''',
+            'image': 'assets/diabetes_symptoms.jpg'
+          },
+          'Types of Diabetes': {
+            'content': '''**Type 1 Diabetes:** This happens when the body doesn't make insulin. It usually starts in childhood or teenage years. (Should use insulin in treatment)
 
-**Hyperglycemia vs Hypoglycemia**
-- Hyperglycemia: Happens when there's too much sugar (glucose) in your blood. Postprandial blood sugar level above 180 mg/dL (10.0 mmol/L). Severe if above 250 mg/dL (13.9 mmol/L), requiring medical intervention. Caused by too little insulin or insulin resistance. **Action:** Measure blood sugar, take correction insulin as directed by your doctor, see a doctor if above 250 mg/dL three times.
-- Hypoglycemia: Blood sugar level below 70 mg/dL (3.9 mmol/L). Severe if below 54 mg/dL (3.0 mmol/L). Action: If conscious: Give half a cup of juice or a spoonful of honey, wait 15 minutes, retest. If unconscious: Do not give by mouth, call emergency, use glucagon if available.
+**Type 2 Diabetes:** This is the most common type. The body doesn't use insulin properly. It usually happens in adults, but can happen to children too.''',
+            'image': ''
+          },
+          'Hyperglycemia vs Hypoglycemia': {
+            'content': '''**Hyperglycemia:**
+• Happens when there's too much sugar (glucose) in your blood
+• Postprandial (after eating) blood sugar level above 180 mg/dL (10.0 mmol/L)
+• Blood sugar level above 250 mg/dL (13.9 mmol/L) is considered severe
+• Actions: Measure blood sugar, take correction insulin as directed, see doctor if persistent
 
-**Diet**
-- Carbohydrates: Affect blood sugar the most. Choose healthy ones like oatmeal, vegetables, fruits, and brown rice. Avoid fast carbs like white bread or soft drinks.
-- Proteins: Important for building muscle. Examples: eggs, beans, lentils, chicken, fish.
-- Healthy Fats: Good for heart and brain. Found in olive oil, avocado, nuts, fish.
+**Hypoglycemia:**
+• Blood sugar (glucose) level lower than standard range
+• Blood sugar level below 70 mg/dL (3.9 mmol/L)
+• Blood sugar level below 54 mg/dL (3.0 mmol/L) is considered severe
+• **If Conscious:** Give half cup of juice or spoonful of honey, wait 15 minutes, retest
+• **If Unconscious:** Do not give anything by mouth, call emergency, use glucagon if available''',
+            'images': ['assets/Hyperglycemia.jpg']
+          },
+          'Site of Injection': {
+            'content': '''Insulin injection sites include:
+• Abdomen (fastest absorption)
+• Thighs
+• Buttocks
+• Upper arms
+Rotate injection sites to prevent lipodystrophy.''',
+            'image': 'assets/injection_sites.jpg'
+          },
+          'Diet': {
+            'content': '''**Carbohydrates:**
+• Affect blood sugar the most
+• Must be carefully calculated and balanced with insulin dosage
+• Choose healthy carbohydrates: oatmeal, vegetables, fruits, brown rice
+• Avoid fast carbohydrates: white bread, soft drinks
 
-**Daily Routine (Dr. Buzzy's Suggestion)**
-- Breakfast (7-8 AM): Whole meal toast + boiled egg or light cheese, cucumber and tomato + skim milk.
-- Snack (10 AM): Small apple or sugar-free yogurt.
-- Lunch (1-2 PM): Grilled chicken or lean meat, half cup rice or pasta + cooked vegetables, simple salad.
-- Snack (4-5 PM): Handful of nuts or low-sugar granola.
-- Dinner (7-8 PM): Grilled fish or chicken, half cup mashed potatoes or brown rice, boiled vegetables + small fruit.
-- Bedtime Snack (if necessary): Salt crackers + milk or two crackers with cheese.
+**Proteins:**
+• Important for building muscle
+• Sources: eggs, beans, lentils, chicken, fish
 
-**Banana Oat Cupcakes Recipe**
-- Ingredients: 1/2 kilo bananas, 1/2 cup oatmeal, 1/2 tsp baking soda, 1 tsp baking powder, 1 cup water, 1/4 cup coconut oil.
-- Method: Mash bananas, add oats, baking powder, and soda. Add water, oil, and honey, stir until smooth. Spread into cupcake cases, bake for 30 minutes.
-''';
-        image = 'assets/diabetes.png';
-        break;
-      case 'Obesity':
-        info = '''
-**Overview**
-Obesity is a chronic complex disease defined by excessive fat deposits that can impair health. It can lead to increased risk of type 2 diabetes and heart disease, affect bone health and reproduction, and increase the risk of certain cancers. It influences the quality of living, such as sleeping or moving.
+**Healthy Fats:**
+• Important for heart and brain
+• Sources: olive oil, avocado, nuts, fish''',
+            'image': 'assets/diabetes_routine.jpg'
+          },
+          'How to Create a Diabetes Friendly Meal': {
+            'image': 'assets/diabetes_diet.jpg'
+          },
+          'Daily Routine (Dr. Buzzy\'s Suggestion)': {
+            'content': '''**Breakfast (7-8 AM):**
+Whole meal toast + boiled egg or light cheese
+Cucumber and tomato + cup of skim milk
 
-**Diagnosis**
-Diagnosis is made by measuring weight and height, calculating BMI: weight (kg)/height² (m²).
+**Snack (10 AM):**
+Small apple or cup of sugar-free natural yogurt
 
-**Tips for Healthy Lifestyle**
-- Ensure children and teens get enough sleep; too little sleep is associated with obesity.
-- Limit screen time to avoid poor sleep, weight gain, and unhealthy eating.
-- Encourage healthy eating: Plenty of vegetables, fruits, whole grains, lean meats, low-fat dairy, water instead of sugary drinks, limit saturated fat, sugar, and salt.
-- Promote active play with friends and family.
-''';
-        image = 'assets/obesity.png';
-        break;
-      case 'Hand, Foot and Mouth':
-        info = '''
-**Overview**
-Hand-foot-and-mouth disease is a common viral illness in young children, affecting hands, feet, and sometimes buttocks. Coxsackieviruses are the most common cause. Most people recover in 7-10 days.
+**Lunch (1-2 PM):**
+Grilled chicken or lean meat
+Half cup of rice or pasta + cooked vegetables
+Simple salad
 
-**Treatment (Dr. Buzzy's Advice)**
-1. Fire Down the Fever! Use Paracetamol or Ibuprofen (no aspirin for children).
-2. Super Sips Save the Day: Stay hydrated with water, milk, smoothies, or ice pops; avoid spicy or sour foods.
-3. Mouth Blisters? Ice Cream is the Cure! Use soft, chilly foods like yogurt or ice cream.
-4. Rash Patrol Activated! Use Calamine lotion and wear comfy clothes.
-5. No Sharing with Germy Invaders! Wash hands, clean toys/surfaces, stay home until blisters heal.
-6. Sleep: Your Secret Weapon for recovery.
+**Snack (4-5 PM):**
+Handful of nuts or low-sugar granola
 
-**Prevention**
-Wash hands frequently, avoid close contact with infected individuals.
-''';
-        image = 'assets/hfm.png';
-        break;
-      case 'Chicken Pox':
-        info = '''
-**Overview**
-Chickenpox is a highly contagious infection commonly affecting children, though it can occur at any age. It usually resolves within 1-2 weeks.
+**Dinner (7-8 PM):**
+Grilled fish or chicken
+Half cup of mashed potatoes or brown rice
+Boiled vegetables + small piece of fruit
 
-**Symptoms**
-An itchy rash of red spots appears, starting on the face, chest, and back, then spreading. Appears up to 21 days after exposure.
+**Bedtime Snack (if necessary):**
+Salt crackers + milk or two crackers with cheese''',
+            'image': ''
+          },
+          'Banana Oat Cupcakes Recipe': {
+            'content': '''Healthy cupcakes for diabetics:
 
-**Stages**
-- Stage 1: Small red spots appear, possibly inside the mouth.
-- Stage 2: Spots become fluid-filled blisters, very itchy, may leak if burst.
-- Stage 3: Scabs and crusts form over burst blisters.
+**Ingredients:**
+• 1/2 kilo bananas
+• 1/2 cup oatmeal
+• 1/2 teaspoon baking soda
+• 1 teaspoon baking powder
+• 1 cup water
+• 1/4 cup coconut oil
 
-**Spread**
-- Direct contact, sneezing, coughing, or contact with infected clothing/bed linen.
+**Preparation:**
+1. Mash bananas well, add oats, baking powder, and baking soda
+2. Add water, oil, and honey, stir until smooth
+3. Spread batter into cupcake cases
+4. Bake in oven for 30 minutes''',
+            'image': 'assets/diabetes_recipe.jpg'
+          },
+          'Physical Exercises': {
+            'content': '''Regular physical activity helps:
+• Improve insulin sensitivity
+• Lower blood glucose levels
+• Maintain healthy weight
+• Strengthen cardiovascular system
 
-**School**
-Stay home until all blisters have scabbed over. Dangerous for pregnant women, newborns, and those with weakened immune systems.
-
-**Prevention**
-Vaccination and good hygiene.
-''';
-        image = 'assets/chickenpox.png';
-        break;
-      case 'Anemia':
-        info = '''
-**Overview**
-Anemia is a condition where the blood lacks enough healthy red blood cells, affecting a child's energy, development, and overall health.
-
-**Types of Anemia**
-- Iron Deficiency Anemia: Caused by poor iron intake, blood loss, or poor absorption. Symptoms include pica (craving ice). Treatment: Iron supplements, iron-rich foods (meat, beans, leafy greens).
-- Vitamin Deficiency Anemia: Due to lack of B12 or folic acid, poor diet/absorption. Symptoms include red beef tongue. Treatment: Vitamin supplements, diet adjustment.
-- Hemolytic Anemia: Red blood cells break down faster than replaced. Includes B-thalassemia (enzyme deficiency) and sickle cell anemia (abnormal hemoglobin causing rigid cells).
-
-**Diagnostic Tests**
-- Complete Blood Count (CBC), Hemoglobin/Hematocrit, Peripheral Blood Smear, Iron Studies, Reticulocyte Count.
-
-**Iron-Rich Foods**
-- Heme: Red meat, poultry, seafood, eggs.
-- Non-heme: Legumes, leafy vegetables, dried fruits (with vitamin C for absorption).
-''';
-        image = 'assets/anemia.png';
-        break;
-    }
-
-    // Parse the info into sections
-    List<String> lines = info.trim().split('\n');
-    String? currentHeader;
-    StringBuffer currentContent = StringBuffer();
-
-    for (var line in lines) {
-      if (line.startsWith('**') && line.endsWith('**')) {
-        if (currentHeader != null) {
-          sections[currentHeader] = currentContent.toString().trim();
-          currentContent.clear();
+**Recommended exercises:**
+• Walking (30 minutes daily)
+• Swimming
+• Cycling
+• Strength training (2-3 times per week)
+• Always monitor blood sugar before and after exercise''',
+            'images': ['assets/diabetes_exercise.jpg' , 'assets/diabetes_exercises.jpg']
+          },
+          'Random Blood Glucose Level': {
+            'content': '''Enter your random blood glucose level below to check if it falls within normal, hyperglycemic, or hypoglycemic ranges.''',
+            'image': '',
+            'hasGlucoseInput': true
+          }
         }
-        currentHeader = line.replaceAll('**', '').trim();
-        isExpanded[currentHeader] = false;
-      } else if (currentHeader != null) {
-        currentContent.writeln(line);
+      },
+      'Obesity': {
+        'headerImage': 'assets/obesity.png',
+        'sections': {
+          'Overview': {
+            'content': '''• Obesity is a chronic complex disease defined by excessive fat deposits that can impair health.
+• Obesity can lead to increased risk of type 2 diabetes and heart disease, it can affect bone health and reproduction, it increases the risk of certain cancers.
+• Obesity influences the quality of living, such as sleeping or moving.''',
+            'image': ''
+          },
+          'Diagnosis': {
+            'content': '''The diagnosis of overweight and obesity is made by measuring people's weight and height and by calculating the body mass index (BMI): weight (kg)/height² (m²).
+
+**BMI Categories:**
+• Underweight: Below 18.5
+• Normal weight: 18.5-24.9
+• Overweight: 25-29.9
+• Obese: 30 and above
+
+**Calculate your BMI:** https://www.calculator.net/bmi-calculator.html''',
+            'image': '',
+            'hasLink': true,
+            'linkUrl': 'https://www.calculator.net/bmi-calculator.html',
+            'linkText': 'BMI Calculator'
+          },
+          'Causes': {
+            'content': '''Common causes of obesity include:
+• Poor dietary habits
+• Lack of physical activity
+• Genetic factors
+• Medical conditions
+• Medications
+• Environmental factors
+• Psychological factors''',
+            'image': 'assets/obesity_diagnosis.jpg'
+          },
+          'How Obesity Starts': {
+            'image': 'assets/obesity_development.jpg'
+          },
+          'Tips for Healthy Lifestyle': {
+            'content': '''**Sleep:**
+Make sure children and teens get enough sleep. Too little sleep is associated with obesity.
+
+**Screen Time:**
+Limit television, video games, smartphone, and tablet use. Encourage fun activities with friends and family.
+
+**Healthy Eating:**
+• Provide plenty of vegetables, fruits, and whole-grain products
+• Choose lean meats, poultry, fish, lentils, and beans for protein
+• Include low-fat or non-fat dairy products
+• Encourage water instead of sugary drinks
+• Limit saturated fat, added sugar, and salt''',
+            'images': ['assets/sleep_tips.jpg', 'assets/screen_time.jpg', 'assets/healthy_eating.jpg']
+          },
+          'Help Children to Stay Active': {
+            'image': 'assets/children_active.jpg'
+          },
+          'Dr. Buzzy\'s Healthy Recipes': {
+            'images': ['assets/obesity_recipes.jpg', 'assets/obesity_recipes2.jpg']
+          }
+        }
+      },
+      'Hand, Foot and Mouth': {
+        'headerImage': 'assets/hfm.png',
+        'sections': {
+          'Overview': {
+            'content': '''Hand-foot-and-mouth disease is a common viral illness in young children. It affects hand, foot and mouth and sometimes buttocks. Coxsackieviruses are the most common cause of hand-foot-and-mouth disease. Most people get better in 7 to 10 days.''',
+            'image': ''
+          },
+          'Symptoms': {
+            'content': '',
+            'image': 'assets/hfm_symptoms.jpg'
+          },
+          'How is it Spread?': {
+            'content': '''HFM spreads through:
+• Contact with infected saliva, nasal secretions
+• Contact with fluid from blisters
+• Contact with infected stool
+• Respiratory droplets from coughing or sneezing
+• Touching contaminated surfaces
+• Close contact with infected person''',
+            'image': 'assets/hfm_spread.jpg'
+          },
+          'What is the Difference Between Chicken Pox and Hand, Foot and Mouth?': {
+            'content': '''**Chicken Pox:**
+The itchy, red rash starts on the face, chest, and back, then spreads to the rest of the body.
+
+**Hand, Foot and Mouth:**
+Itchy, red rash starts on hand, mouth, and foot.''',
+            'image': ''
+          },
+          'Treatment (Dr. Buzzy\'s Advice)': {
+            'content': '''Hello, brave young hero! HFMD has invaded, but don't worry - you've got the tools to defeat it:
+
+**1. Fire Down the Fever!**
+• Use Mr. Cool (Paracetamol) or Captain Ibuprofen
+• Warning: No aspirin for children
+
+**2. Super Sips Save the Day:**
+• Keep hydration as your target!
+• Water, milk, smoothies, or ice pops
+• Avoid spicy or sour foods
+
+**3. Mouth Blisters? Ice Cream is the Cure!**
+• Soft, chilly foods like yogurt and ice cream calm mouth spots
+
+**4. Rash Patrol Activated!**
+• Use Lotion League (like Calamine) for spots
+• Wear super-comfy clothes
+
+**5. No Sharing with Germy Invaders!**
+• Wash hands like a soap superhero
+• Clean toys and surfaces
+• Stay home until blisters are gone
+
+**6. Sleep: Your Secret Weapon**
+• Rest to recover energy and defeat the virus!''',
+            'image': ''
+          },
+          'How to Prevent Spread of HFM?': {
+            'content': '',
+            'image': 'assets/hfm_prevention.jpg'
+          }
+        }
+      },
+      'Chicken Pox': {
+        'headerImage': 'assets/chickenpox.png',
+        'sections': {
+          'Overview': {
+            'content': '''Chickenpox is an infection that commonly affects little heroes, although you can get it at any age. It is highly contagious to people that haven't previously had chickenpox, but don't worry - it usually goes away on its own within one to two weeks.''',
+            'image': ''
+          },
+          'Symptoms': {
+            'content': '''Chickenpox presents as an itchy rash consisting of red spots. Any area of the body can be affected. The rash usually appears up to 21 days after exposure to the virus.
+
+**Common symptoms:**
+• Itchy, red rash
+• Fever
+• Headache
+• Fatigue
+• Loss of appetite
+• Body aches''',
+            'image': 'assets/chickenpox_symptoms.jpg'
+          },
+          'What is the Difference Between Chicken Pox and Hand, Foot and Mouth?': {
+            'content': '''**Chicken Pox:**
+The itchy, red rash starts on the face, chest, and back, then spreads to the rest of the body.
+
+**Hand, Foot and Mouth:**
+Itchy, red rash starts on hand, mouth, and foot.''',
+            'image': ''
+          },
+          'Stages of Chickenpox': {
+            'content': '''**Stage 1:**
+Small red spots appear on the body, including possibly inside the mouth.
+
+**Stage 2:**
+The spots become blisters filled with fluid. These can be extremely itchy and may leak if they burst.
+
+**Stage 3:**
+Scabs and crusts form over the burst blisters.''',
+            'image': 'assets/chickenpox_stages.jpg'
+          },
+          'How is it Spread?': {
+            'content': '''Chickenpox spreads through:
+1. Person to person by direct contact (touching)
+2. Sneezing or coughing (respiratory droplets)
+3. Contact with clothing or bed linen of infected person
+4. Contact with fluid from blisters''',
+            'image': ''
+          },
+          'Do I Need to Stop Going to School?': {
+            'content': '''**Yes, you need to stay home because:**
+• Chickenpox is highly contagious
+• Stay away from school and other children until all blisters have scabbed over
+• Chickenpox can be dangerous for pregnant people, newborn babies, and people with weakened immune systems
+• Usually takes 5-7 days for all blisters to scab over''',
+            'image': ''
+          },
+          'How to Prevent It?': {
+            'content': '',
+            'image': 'assets/chickenpox_prevention.jpg'
+          }
+        }
+      },
+      'Anemia': {
+        'headerImage': 'assets/anemia.png',
+        'sections': {
+          'Overview': {
+            'content': '''Anemia is a condition in which the blood doesn't have enough healthy red blood cells. It can affect a child's energy, development, and overall health.''',
+            'image': ''
+          },
+          'Symptoms': {
+            'content': '',
+            'image': 'assets/anemia_symptoms.jpg'
+          },
+          'Types of Anemia': {
+            'content': '''**Iron Deficiency Anemia:**
+**Causes:** Poor dietary intake of iron, blood loss, poor absorption of iron
+**Symptoms:** General anemia symptoms plus pica symptom (craving ice)
+**Treatment:** Iron supplements, iron-rich foods
+
+**Vitamin Deficiency Anemia:**
+**Causes:** Lack of vitamin B12 and folic acid, poor diet or absorption issues
+**Symptoms:** General anemia symptoms plus red beef tongue
+**Treatment:** Vitamin supplements, diet adjustment,
+
+**Hemolytic Anemia:**
+Blood disorder where red blood cells break down faster than body can replace them
+
+**Types include:**
+• **B-thalassemia:** Low enzyme levels, treatment depends on cause
+• **Sickle cell anemia:** Inherited condition with abnormal hemoglobin causing rigid cells''',
+            'image': 'assets/red_beef_tongue.jpg'
+          },
+          'Diagnostic Tests for Anemia': {
+            'content': '''**Common tests include:**
+• **Complete Blood Count (CBC):** Overall red blood cell information
+• **Hemoglobin and Hematocrit:** Measure amount and concentration of red blood cells
+• **Peripheral Blood Smear:** Examines shape and size of red blood cells
+• **Iron Studies:** Evaluate iron levels and storage (Iron, Ferritin, TIBC)
+• **Reticulocyte Count:** Measures young red blood cells to assess bone marrow activity''',
+            'image': ''
+          },
+          'Examples of Food Rich in Iron': {
+            'content': '''**Heme Iron (from animal sources - easily absorbed):**
+• Red meat: beef, lamb, venison
+• Poultry
+• Seafood: oysters, sardines, tuna
+• Eggs, especially egg yolks
+
+**Non-heme Iron (from plant sources - take with vitamin C for better absorption):**
+• Legumes: lentils, chickpeas, kidney beans
+• Leafy vegetables: spinach, kale
+• Dried fruits: apricots, raisins, prunes
+• Fortified cereals and grains
+
+**Vitamin C Examples (to enhance iron absorption):**
+• Citrus fruits: oranges, lemons, grapefruits
+• Berries: strawberries, blueberries, raspberries
+• Bell peppers (red, yellow, green)
+• Tomatoes and tomato juice
+• Kiwi fruit
+• Broccoli and Brussels sprouts
+• Cantaloupe and papaya''',
+            'images': ['assets/iron_recipes.jpg', 'assets/iron_recipes2.jpg']
+          },
+          'Dr. Buzzy\'s Iron Booster Recipes': {
+            'content': '''Healthy iron-rich recipes:
+• Spinach and lentil soup
+• Beef and vegetable stew
+• Iron-fortified smoothies with spinach and fruits
+• Quinoa salad with beans and dried fruits
+• Grilled chicken with steamed broccoli
+• Tuna and white bean salad
+• Always pair with vitamin C-rich foods for better absorption''',
+            'image': 'assets/anemia_iron.jpg'
+          }
+        }
+      }
+    };
+  }
+
+  void _initializeExpandedStates() {
+    final currentDisease = diseaseData[widget.diseaseName];
+    if (currentDisease != null) {
+      final sections = currentDisease['sections'] as Map<String, dynamic>;
+      for (String sectionName in sections.keys) {
+        // Expand 'Random Blood Glucose Level' by default for diabetes
+        if (sectionName == 'Random Blood Glucose Level' && widget.diseaseName == 'Diabetes Mellitus') {
+          isExpanded[sectionName] = true;
+        } else {
+          isExpanded[sectionName] = false;
+        }
       }
     }
-    if (currentHeader != null && currentContent.isNotEmpty) {
-      sections[currentHeader] = currentContent.toString().trim();
+  }
+
+  void _validateGlucoseLevel(String value) {
+    setState(() {
+      _glucoseFeedback = '';
+      if (value.isEmpty) return;
+      try {
+        double glucose = double.parse(value);
+        if (glucose < 54) {
+          _glucoseFeedback = 'Severe Hypoglycemia: Below 54 mg/dL. Do not give anything by mouth if unconscious. Call emergency services immediately.';
+        } else if (glucose < 70) {
+          _glucoseFeedback = 'Hypoglycemia: Below 70 mg/dL. If conscious, give half a cup of juice or a spoonful of honey, wait 15 minutes, and retest.';
+        } else if (glucose > 250) {
+          _glucoseFeedback = 'Severe Hyperglycemia: Above 250 mg/dL. Take correction insulin as directed and consult a doctor if persistent.';
+        } else if (glucose > 180) {
+          _glucoseFeedback = 'Hyperglycemia: Above 180 mg/dL. Monitor and consider correction insulin as directed by your doctor.';
+        } else {
+          _glucoseFeedback = 'Normal Range: Your blood glucose level is within a safe range.';
+        }
+      } catch (e) {
+        _glucoseFeedback = 'Please enter a valid number.';
+      }
+    });
+  }
+
+  Future<void> _launchUrl(String url) async {
+    final Uri uri = Uri.parse(url);
+    if (!await launchUrl(uri)) {
+      throw Exception('Could not launch $url');
     }
+  }
+
+  void _showImageDialog(String imagePath) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          child: Container(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.8,
+              maxWidth: MediaQuery.of(context).size.width * 0.9,
+            ),
+            child: Stack(
+              children: [
+                Center(
+                  child: Image.asset(
+                    imagePath,
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        width: 300,
+                        height: 200,
+                        color: Colors.grey[300],
+                        child: const Icon(
+                          Icons.image_not_supported,
+                          color: Colors.grey,
+                          size: 50,
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                Positioned(
+                  top: 10,
+                  right: 10,
+                  child: GestureDetector(
+                    onTap: () => Navigator.of(context).pop(),
+                    child: Container(
+                      decoration: const BoxDecoration(
+                        color: Colors.black54,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.close,
+                        color: Colors.white,
+                        size: 30,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildRichText(String text) {
+    List<TextSpan> spans = [];
+    List<String> parts = text.split('**');
+
+    for (int i = 0; i < parts.length; i++) {
+      if (i % 2 == 0) {
+        // Regular text
+        spans.add(TextSpan(
+          text: parts[i],
+          style: const TextStyle(
+            color: Colors.black87,
+            fontSize: 16,
+          ),
+        ));
+      } else {
+        // Bold text
+        spans.add(TextSpan(
+          text: parts[i],
+          style: const TextStyle(
+            color: Colors.black87,
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
+        ));
+      }
+    }
+
+    return RichText(
+      text: TextSpan(children: spans),
+      textAlign: TextAlign.left,
+    );
+  }
+
+  Widget _buildClickableImage(String imagePath) {
+    return GestureDetector(
+      onTap: () => _showImageDialog(imagePath),
+      child: Image.asset(
+        imagePath,
+        width: 250,
+        height: 150,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return Container(
+            width: 250,
+            height: 150,
+            color: Colors.grey[300],
+            child: const Icon(
+              Icons.image_not_supported,
+              color: Colors.grey,
+            ),
+          );
+        },
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final currentDisease = diseaseData[widget.diseaseName];
+    if (currentDisease == null) {
+      return Scaffold(
+        appBar: AppBar(
+          title: Text(widget.diseaseName),
+          backgroundColor: Colors.yellow[700],
+        ),
+        body: const Center(
+          child: Text('Disease information not found'),
+        ),
+      );
+    }
+
+    final sections = currentDisease['sections'] as Map<String, dynamic>;
+    final headerImage = currentDisease['headerImage'] as String?;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.diseaseName),
@@ -173,78 +615,47 @@ Anemia is a condition where the blood lacks enough healthy red blood cells, affe
         child: SingleChildScrollView(
           child: Column(
             children: [
-              if (image.isNotEmpty) Image.asset(image),
+              if (headerImage != null && headerImage.isNotEmpty)
+                GestureDetector(
+                  onTap: () => _showImageDialog(headerImage),
+                  child: Image.asset(
+                    headerImage,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        width: double.infinity,
+                        height: 200,
+                        color: Colors.grey[300],
+                        child: const Icon(
+                          Icons.image_not_supported,
+                          color: Colors.grey,
+                          size: 50,
+                        ),
+                      );
+                    },
+                  ),
+                ),
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
-                  children: sections.entries.map((entry) {
-                    String cardImage = '';
-                    switch (entry.key) {
-                      case 'Overview':
-                        switch (widget.diseaseName) {
-                          case 'Diabetes Mellitus':
-                            cardImage = 'assets/dr_buzz_logo.png';
-                            break;
-                          case 'Obesity':
-                            cardImage = 'assets/dr_buzz_logo.png';
-                            break;
-                          case 'Hand, Foot and Mouth':
-                            cardImage = 'assets/dr_buzz_logo.png';
-                            break;
-                          case 'Chicken Pox':
-                            cardImage = 'assets/dr_buzz_logo.png';
-                            break;
-                          case 'Anemia':
-                            cardImage = 'assets/dr_buzz_logo.png';
-                            break;
-                        }
-                        break;
-                      case 'Types of Diabetes':
-                        cardImage = 'assets/dr_buzz_logo.png';
-                        break;
-                      case 'Types of Anemia':
-                        cardImage = 'assets/anemia_types.jpg';
-                        break;
-                      case 'Hyperglycemia vs Hypoglycemia':
-                        cardImage = 'assets/dr_buzz_logo.png';
-                        break;
-                      case 'Diagnosis':
-                        cardImage = 'assets/obesity_diagnosis.jpg';
-                        break;
-                      case 'Treatment (Dr. Buzzy\'s Advice)':
-                        cardImage = 'assets/dr_buzz_logo.png';
-                        break;
-                      case 'Symptoms':
-                        cardImage = 'assets/chickenpox_symptoms.jpg';
-                        break;
-                      case 'Stages':
-                        cardImage = 'assets/chickenpox_stages.jpg';
-                        break;
-                      case 'Diet':
-                        cardImage = 'assets/diabetes_diet.jpg';
-                        break;
-                      case 'Tips for Healthy Lifestyle':
-                        cardImage = 'assets/obesity_tips.jpg';
-                        break;
-                      case 'Iron-Rich Foods':
-                        cardImage = 'assets/anemia_iron.jpg';
-                        break;
-                      case 'Daily Routine (Dr. Buzzy\'s Suggestion)':
-                        cardImage = 'assets/diabetes_routine.jpg';
-                        break;
-                      case 'Prevention':
-                        cardImage = 'assets/hfm_prevention.jpg';
-                        break;
-                      case 'Banana Oat Cupcakes Recipe':
-                        cardImage = 'assets/diabetes_recipe.jpg';
-                        break;
-                      case 'Spread':
-                        cardImage = 'assets/dr_buzz_logo.png';
-                        break;
-                      case 'School':
-                        cardImage = 'assets/chickenpox_school.jpg';
-                        break;
+                  children: sections.entries.map<Widget>((entry) {
+                    final sectionName = entry.key;
+                    final sectionData = entry.value as Map<String, dynamic>;
+                    final content = sectionData['content'] as String? ?? '';
+                    final image = sectionData['image'] as String? ?? '';
+
+                    // Safe casting for images list
+                    List<String> images = [];
+                    if (sectionData['images'] != null) {
+                      if (sectionData['images'] is List) {
+                        images = (sectionData['images'] as List).cast<String>();
+                      }
                     }
+
+                    final hasGlucoseInput = sectionData['hasGlucoseInput'] as bool? ?? false;
+                    final hasLink = sectionData['hasLink'] as bool? ?? false;
+                    final linkUrl = sectionData['linkUrl'] as String? ?? '';
+                    final linkText = sectionData['linkText'] as String? ?? '';
+
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 8.0),
                       child: Card(
@@ -257,7 +668,7 @@ Anemia is a condition where the blood lacks enough healthy red blood cells, affe
                           children: [
                             ListTile(
                               title: Text(
-                                entry.key,
+                                sectionName,
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold,
@@ -265,50 +676,101 @@ Anemia is a condition where the blood lacks enough healthy red blood cells, affe
                                 ),
                               ),
                               trailing: Icon(
-                                isExpanded[entry.key]!
+                                isExpanded[sectionName] == true
                                     ? Icons.expand_less
                                     : Icons.expand_more,
                                 color: Colors.white,
                               ),
                               onTap: () {
                                 setState(() {
-                                  isExpanded[entry.key] = !isExpanded[entry.key]!;
+                                  isExpanded[sectionName] = !(isExpanded[sectionName] ?? false);
                                 });
                               },
                             ),
-                            if (isExpanded[entry.key]!)
+                            if (isExpanded[sectionName] == true)
                               Padding(
                                 padding: const EdgeInsets.all(16.0),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(
-                                      entry.value,
-                                      style: const TextStyle(
-                                        color: Colors.black87,
-                                        fontSize: 16,
-                                      ),
-                                      textAlign: TextAlign.left,
-                                    ),
-                                    if (cardImage.isNotEmpty)
+                                    if (content.isNotEmpty) ...[
+                                      _buildRichText(content),
+                                      // For obesity tips section, add images after each paragraph
+                                      if (sectionName == 'Tips for Healthy Lifestyle' && images.isNotEmpty) ...[
+                                        const SizedBox(height: 16),
+                                        ...images.asMap().entries.map((entry) {
+                                          return Padding(
+                                            padding: const EdgeInsets.only(bottom: 16.0),
+                                            child: Center(child: _buildClickableImage(entry.value)),
+                                          );
+                                        }).toList(),
+                                      ],
+                                    ],
+                                    if (hasLink && linkUrl.isNotEmpty)
                                       Padding(
                                         padding: const EdgeInsets.only(top: 8.0),
-                                        child: Image.asset(
-                                          cardImage,
-                                          width: 250,
-                                          height: 150,
-                                          errorBuilder: (context, error, stackTrace) {
-                                            return Container(
-                                              width: 250,
-                                              height: 150,
-                                              color: Colors.grey[300],
-                                              child: const Icon(
-                                                Icons.image_not_supported,
-                                                color: Colors.grey,
-                                              ),
-                                            );
-                                          },
+                                        child: GestureDetector(
+                                          onTap: () => _launchUrl(linkUrl),
+                                          child: Text(
+                                            linkText,
+                                            style: const TextStyle(
+                                              color: Colors.blue,
+                                              decoration: TextDecoration.underline,
+                                              fontSize: 16,
+                                            ),
+                                          ),
                                         ),
+                                      ),
+                                    if (hasGlucoseInput && widget.diseaseName == 'Diabetes Mellitus')
+                                      Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          const SizedBox(height: 16),
+                                          TextField(
+                                            controller: _glucoseController,
+                                            keyboardType: TextInputType.number,
+                                            decoration: const InputDecoration(
+                                              labelText: 'Enter Blood Glucose Level (mg/dL)',
+                                              border: OutlineInputBorder(),
+                                              filled: true,
+                                              fillColor: Colors.white,
+                                            ),
+                                            onChanged: _validateGlucoseLevel,
+                                          ),
+                                          if (_glucoseFeedback.isNotEmpty)
+                                            Padding(
+                                              padding: const EdgeInsets.only(top: 8.0),
+                                              child: Text(
+                                                _glucoseFeedback,
+                                                style: TextStyle(
+                                                  color: _glucoseFeedback.contains('Severe')
+                                                      ? Colors.red
+                                                      : Colors.black87,
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                    // Handle multiple images for sections that need them
+                                    if (images.isNotEmpty && sectionName != 'Tips for Healthy Lifestyle')
+                                      Padding(
+                                        padding: const EdgeInsets.only(top: 16.0),
+                                        child: Column(
+                                          children: images.map((imagePath) {
+                                            return Padding(
+                                              padding: const EdgeInsets.only(bottom: 8.0),
+                                              child: Center(child: _buildClickableImage(imagePath)),
+                                            );
+                                          }).toList(),
+                                        ),
+                                      ),
+                                    // Handle single image
+                                    if (image.isNotEmpty)
+                                      Padding(
+                                        padding: const EdgeInsets.only(top: 16.0),
+                                        child: Center(child: _buildClickableImage(image)),
                                       ),
                                   ],
                                 ),
